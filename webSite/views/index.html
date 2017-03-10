@@ -1,0 +1,119 @@
+<%- include('head.html') -%>
+
+	<!-- Page Content -->
+	<div class="container">
+
+		<!-- Jumbotron Header -->
+		<header class="jumbotron hero-spacer text-center">
+			<h1>智慧農作生長環境檢測服務</h1>
+		</header>
+
+		<hr>
+		
+		<!-- Title -->
+		<div class="row">
+			<div class="page-header">
+				<b><h1>最新數據 <small> 每10秒會更新一次</small> </h1></b>
+			</div>
+		</div>
+		<!-- /.row -->
+
+		<div class="row">
+			<div class="col-md-4">
+			</div>
+			<div class="col-md-5">
+			<table class="table table-hover table-striped">
+				<tbody>
+					<tr>
+						<td>
+							<h1 class="text-left">溫度：</h1>
+						</td>
+						<td>
+							<h1 class="text-left"><span id='tem'></span></h1>
+						</td>
+					</tr>
+					<tr>
+						<td><h1 class="text-left">空氣濕度：</h1></td>
+						<td><h1 class="text-left"><span id='air'></span></h1></td>
+					</tr>
+					<tr>
+						<td><h1 class="text-left">土壤濕度：</h1></td>
+						<td><h1 class="text-left"><span id='soil'></span></h1></td>
+					</tr>
+					<tr>
+						<td><h1 class="text-left">光照度：</h1></td>
+						<td><h1 class="text-left"><span id='ill'></span></h1></td>
+					</tr>
+				</tbody>
+			</table>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-4">
+			</div>
+			<div class="col-md-6" style="margin-left: auto;margin-right: auto">
+				
+			</div>
+
+		</div>
+
+		<div class="row">
+			<div class="col-md-4">
+			</div>
+			<div class="col-md-6 text-center">
+				
+			</div>
+
+		</div>
+
+		<div class="row">
+			<div class="col-md-4">
+			</div>
+			<div class="col-md-6">
+				
+			</div>
+
+		</div>
+
+		<div class="col-md-4">
+		</div>
+		<div class="col-md-4">
+		</div>
+		<div class="col-md-4">
+		</div>
+		<hr/>
+
+		<!-- Footer -->
+		<footer>
+			<div class="row">
+				<div class="col-lg-12 text-center">
+					<p>Copyright &copy; My Website 2016</p>
+				</div>
+			</div>
+		</footer>
+
+	</div>
+	<!-- /.container -->
+
+    <!-- jQuery -->
+    <script src="js/jquery.js"></script>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-datetimepicker.min.js"></script>
+    <!-- Socket.io -->
+    <script src='socket.io/socket.io.js'></script>
+    	<script>
+		var socket = io.connect();
+		socket.on("data", function(data) {
+			$("#tem").html("\t" + data.temperature);
+			$("#soil").html("\t" + data.soil);
+			$("#air").html("\t" + data.air);
+			$("#ill").html("\t" + data.illumination);
+		});
+		socket.on("water", function(a) {
+			alert("植物處在低溫狀態！");
+		});
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,197 @@
+<%- include('head.html') -%>
+<%
+Date.prototype.Format = function(fmt) {
+    var o = {
+    "M+": this.getMonth() + 1, //月份
+    "d+": this.getDate(), //日
+    "h+": this.getHours(), //小时
+    "m+": this.getMinutes(), //分
+    "s+": this.getSeconds(), //秒
+    "S": this.getMilliseconds() //毫秒
+    };
+    if(/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+    for(var k in o)
+    if(new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+    return fmt;
+}
+%>
+<div class="container">
+	<!-- Title -->
+	<div class="row">
+		<div class="page-header">
+			<b><h1>最近一個小時内的1圖表數據 <small> 你可自定義起始與結束時間</small></h1></b>
+		</div>
+	</div>
+	
+	<div class="row">
+		<form action="/diagram" class="form-horizontal" method="post" role="form">
+			<fieldset>
+				<div class="form-group">
+					<label for="dtp_input1" class="col-md-1 control-label"><b>起始时间</b></label>
+					<div class="input-group date form_datetime col-md-3" id="time1">
+						<input class="form-control" name="startTime" id="startTime" size="16" type="text" value="" readonly>
+						<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+						<span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+					</div>
+					<input type="hidden" id="dtp_input1" value="" /><br/>
+				</div>
+				
+				
+				<div class="form-group">
+					<label for="dtp_input2" class="col-md-1 control-label"><b>结束时间</b></label>
+					<div class="input-group date form_datetime col-md-3" id="time2">
+						<input class="form-control" name="endTime" id="endTime" size="16" type="text" value="" readonly>
+						<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+						<span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+					</div>
+					<input type="hidden" id="dtp_input2" value="" /><br />
+				</div>
+			</fieldset>
+                <div class="col-md-3"></div>&emsp;
+                <button type="submit" disabled="disabled" class="btn btn-primary btn-large" id="ok">
+                    	&emsp;確定&emsp;
+                </button>
+		</form>
+	</div>
+	<hr />
+	<div class="row">
+		<%
+            if (result) {
+		%>
+<button type="button" class="btn btn-primary" id="check" data-toggle="modal" data-target=".bs-example-modal-lg">
+	&emsp;查看圖表&emsp;
+</button>
+
+			<!-- Modal -->
+<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+		<div class="modal-header">
+        	<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        	<h4 class="modal-title text-center" id="myModalLabel"><b>圖表數據</b></h4>
+      	</div>
+	<div class="modal-body">
+        <canvas id="chart"></canvas> <br/>
+      </div>
+    </div>
+  </div>
+</div>
+            
+				<% } else { %>
+					<div class="text-center">
+                    <h1><b>沒有找到任何數據!!!</b></h1>
+					</div>
+					</div>
+				<% } %>
+</div>
+        <br/>
+		<hr/>
+<!-- Footer -->
+<footer>
+	<div class="row">
+		<div class="col-lg-12 text-center">
+			<p>Copyright &copy; My Website 2016</p>
+		</div>
+	</div>
+</footer>
+
+</div>
+<!-- /.container -->
+
+<!-- jQuery -->
+<script src="js/jquery.js" charset="UTF-8"></script>
+<!-- Bootstrap Core JavaScript -->
+<script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap-datetimepicker.min.js" charset="UTF-8"></script>
+<script src="js/Chart.min.js"></script>
+<script>
+function post(path) {
+    $("#pageForm").attr("action",path); 
+    $("#pageForm").submit(); 
+ }
+	$(".form_datetime").datetimepicker({
+		format: "yyyy-mm-dd  hh:ii",
+		autoclose: true,
+		todayBtn: true,
+		startDate: new Date(<%= dbStartTime %>),
+		endDate: new Date(),
+		minuteStep: 10
+	});
+    
+    $('.form-control').bind('change', function() {
+        if($("#startTime").val() != "") {
+            $('#time2').datetimepicker('setStartDate', $("#startTime").val().toString());
+        }
+        if($("#startTime").val() != "" && $("#endTime").val() != ""){
+ 	   		$("#ok").removeAttr("disabled");   
+ 	   } else {
+ 	   		$("#ok").attr({"disabled":"disabled"});
+ 	   }
+});
+
+<%
+    if (result) {
+        var records = [];
+        if(total <= 7) {
+            for(var i=0; i < total; ++i) {
+                records.push(result[i]);
+            }
+        } else {
+            for(var i=0; i < 7; ++i) {
+                records.push(result[ Math.ceil(i/7 * total) ]);
+            }
+        }
+		records.reverse();
+%>
+
+var temData = {
+	labels : [ <% records.forEach(function(em){ %><%-'"'+ (new Date(em['date'])).Format('yyyy-MM-dd hh:mm:ss') +'",' -%><% }); %> ],
+	datasets : [
+		{
+            label: "溫度",
+			fill: false,
+			backgroundColor:  "#D97041",
+			borderColor: "#D97041",
+			pointStrokeColor : "#fff",
+			data : [<% records.forEach(function(em){ %><%- em['temperature']+',' %><% }); %>]
+		},
+        {
+            label: "空氣濕度",
+			fill: false,
+			backgroundColor:  "#9D9B7F",
+			borderColor: "#9D9B7F",
+			pointStrokeColor : "#fff",
+			data : [<% records.forEach(function(em){ %><%- em['air']+',' %><% }); %>]
+		},
+        {
+            label: "土壤濕度",
+			fill: false,
+			backgroundColor:  "#21323D",
+			borderColor: "#21323D",
+			pointStrokeColor : "#fff",
+			data : [<% records.forEach(function(em){ %><%- em['soil']+',' %><% }); %>]
+		},
+        {
+            label: "光照度",
+			fill: false,
+			backgroundColor:  "#C7604C",
+			borderColor: "#C7604C",
+			pointStrokeColor : "#fff",
+			data : [<% records.forEach(function(em){ %><%- em['illumination']+',' %><% }); %>]
+		},
+	]
+}
+var cxt = $("#chart").get(0).getContext("2d");
+var temChart = new Chart(cxt, {
+    type: 'line',
+    data: temData
+});
+
+$(document).ready(function(){
+	$("#check").click();
+});
+    <% } %>
+</script>
+</body>
+
+</html>
